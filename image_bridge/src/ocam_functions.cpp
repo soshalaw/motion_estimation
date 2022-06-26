@@ -1,16 +1,26 @@
-#include "math.h"
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core.hpp>
-
 #include "ocam_functions.h"
 
 ocam_functions::ocam_functions()
 {
+    ros::param::get("cam1_invpol", cam1_invpol);
+    ros::param::get("cam1_mapcoef", cam1_pol);;
+    ros::param::get("cam1_yc", cam1_yc);
+    ros::param::get("cam1_xc", cam1_xc);
+    ros::param::get("cam1_c", cam1_c);
+    ros::param::get("cam1_d", cam1_d);
+    ros::param::get("cam1_e", cam1_e);
+
+    ros::param::get("cam2_invpol", cam2_invpol);
+    ros::param::get("cam2_mapcoef", cam2_pol);
+    ros::param::get("cam2_yc", cam2_yc);
+    ros::param::get("cam2_xc", cam2_xc);
+    ros::param::get("cam2_c", cam2_c);
+    ros::param::get("cam2_d", cam2_d);
+    ros::param::get("cam2_e", cam2_e);
 
 }
 
-void ocam_functions::world2cam(double point2D[2], double point3D[3])
+void ocam_functions::world2cam(double point2D[2], double point3D[3], double xc, double yc, double c, double d, double e, std::vector<double> invpol, std::vector<double> pol)
 {
      double norm        = sqrt(point3D[0]*point3D[0] + point3D[1]*point3D[1]);
      double theta       = atan(point3D[2]/norm);
@@ -91,7 +101,7 @@ cv::Mat ocam_functions::slice(cv::Mat M, double c[3], double theta_min, double t
             planer_coords[1] = y/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
             planer_coords[2] = z/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
 
-            world2cam(points2D, planer_coords);
+            world2cam(points2D, planer_coords, cam1_xc, cam1_yc, cam1_c, cam1_d, cam1_e, cam1_invpol, cam1_pol);
 
             ImgPointsx.at<float>(i,j) = points2D[0];
             ImgPointsy.at<float>(i,j) = points2D[1];
@@ -102,3 +112,4 @@ cv::Mat ocam_functions::slice(cv::Mat M, double c[3], double theta_min, double t
 
     return img;
 }
+

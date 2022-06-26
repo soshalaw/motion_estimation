@@ -5,6 +5,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core.hpp>
+#include <ros/ros.h>
 
 
 class ocam_functions
@@ -12,9 +13,10 @@ class ocam_functions
 public:
     ocam_functions();
 
-    void world2cam(double point2D[2], double point3D[3]);
+    void world2cam(double point2D[2], double point3D[3], double xc, double yc, double c, double d, double e, std::vector<double> invpol, std::vector<double> pol);
 
     cv::Mat slice(cv::Mat M, double c[3], double theta_min, double theta_max, double delta_min, double delta_max);
+
 
 private:
     cv::Mat img, ImgPointsx, ImgPointsy;  // definition of matrices for the output image and remapping
@@ -25,24 +27,28 @@ private:
     double cp_x, cp_y, cp_z, modx, mody;
 
     //calibration data camera 01
-    std::vector<double> invpol = {-1.075233654325322e+02, 4.704007234612547e+02, -7.039759405818603e+02, 2.838316240089585e+02, -9.038676504203400e+02, 1.606691263137671e+03};
-    std::vector<double> pol = {1.145882288545091e+03 ,0 ,-3.630427146836845e-04 ,1.047936476714481e-07 ,-1.000973064316358e-10};
-    double yc = 1.307765250016426e+03;
-    double xc = 1.647330746606595e+03;
+    std::vector<double> cam1_invpol;
+    std::list<double> cam1_invpol_list;
+    std::vector<double> cam1_pol;
+    std::list<double> cam1_pol_list;
+    double cam1_yc;
+    double cam1_xc;
 
-    double c = 1;
-    double d = 0;
-    double e = 0;
+    double cam1_c;
+    double cam1_d;
+    double cam1_e;
 
-    //calibration data camera 02 TODO
-   /* std::vector<double> invpol = {-1.075233654325322e+02, 4.704007234612547e+02, -7.039759405818603e+02, 2.838316240089585e+02, -9.038676504203400e+02, 1.606691263137671e+03};
-    std::vector<double> pol = {1.145882288545091e+03 ,0 ,-3.630427146836845e-04 ,1.047936476714481e-07 ,-1.000973064316358e-10};
-    double yc = 1.307765250016426e+03;
-    double xc = 1.647330746606595e+03;
+    //calibration data camera 02
+    std::vector<double> cam2_invpol;
+    std::list<double> cam2_invpol_list;
+    std::vector<double> cam2_pol;
+    std::list<double> cam2_pol_list;
+    double cam2_yc;
+    double cam2_xc;
 
-    double c = 1;
-    double d = 0;
-    double e = 0;*/
+    double cam2_c;
+    double cam2_d;
+    double cam2_e;
 
 
     int H_res = 1024; // length of the output image
