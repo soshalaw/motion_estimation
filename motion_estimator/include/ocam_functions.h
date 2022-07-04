@@ -13,7 +13,7 @@ class ocam_functions
 public:
     ocam_functions();
 
-    void world2cam(double point2D[2], double point3D[3], double xc, double yc, double c, double d, double e, std::vector<double> invpol, std::vector<double> pol);
+    void world2cam(double point2D[2], double point3D[3], double xc, double yc, double c, double d, double e, std::vector<double> invpol);
 
     cv::Mat slice(cv::Mat M, double c[3], double theta_min, double theta_max, double delta_min, double delta_max);
 
@@ -51,9 +51,9 @@ private:
     double cam2_e;
 
 
-    int H_res = 1024; // length of the output image
+    int H_res; // length of the output image
 
-    int mode = 0;
+    int mode;
 
 };
 

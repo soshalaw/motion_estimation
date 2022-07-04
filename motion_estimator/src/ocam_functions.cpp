@@ -18,13 +18,16 @@ ocam_functions::ocam_functions()
     ros::param::get("cam2_d", cam2_d);
     ros::param::get("cam2_e", cam2_e);
 
+    H_res = 1024;
+
+    mode = 0;
 }
 
-void ocam_functions::world2cam(double point2D[2], double point3D[3], double xc, double yc, double c, double d, double e, std::vector<double> invpol, std::vector<double> pol)
+void ocam_functions::world2cam(double point2D[2], double point3D[3], double xc, double yc, double c, double d, double e, std::vector<double> invpol)
 {
      double norm        = sqrt(point3D[0]*point3D[0] + point3D[1]*point3D[1]);
      double theta       = atan(point3D[2]/norm);
-     int length_invpol  = 6;
+     int length_invpol  = invpol.size();
      double t, t_i;
      double rho, x, y;
      double invnorm;
@@ -101,7 +104,7 @@ cv::Mat ocam_functions::slice(cv::Mat M, double c[3], double theta_min, double t
             planer_coords[1] = y/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
             planer_coords[2] = z/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
 
-            world2cam(points2D, planer_coords, cam1_xc, cam1_yc, cam1_c, cam1_d, cam1_e, cam1_invpol, cam1_pol);
+            world2cam(points2D, planer_coords, cam1_xc, cam1_yc, cam1_c, cam1_d, cam1_e, cam1_invpol);
 
             ImgPointsx.at<float>(i,j) = points2D[0];
             ImgPointsy.at<float>(i,j) = points2D[1];

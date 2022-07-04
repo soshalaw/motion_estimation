@@ -4,7 +4,7 @@ image_bridge::image_bridge()
 : it_(nh_)
 {
     image_sub1 = it_.subscribe("usb_cam1/image_raw", 1 , &image_bridge::imageCbA, this);
-    image_sub2 = it_.subscribe("usb_cam2/image_raw", 1 , &image_bridge::imageCbB, this);
+    image_sub2 = it_.subscribe("usb_cam1/image_raw", 1 , &image_bridge::imageCbB, this);
     cv::namedWindow(OPENCV_WINDOW1);
 }
 
@@ -57,7 +57,7 @@ void image_bridge::imageCbB(const sensor_msgs::ImageConstPtr &msg)
 
 }
 
-void image_bridge::merge()
+void image_bridge::merge() //merging the images of the two cameras into one matrix
 {
     cv::Mat new_img, res;
 
