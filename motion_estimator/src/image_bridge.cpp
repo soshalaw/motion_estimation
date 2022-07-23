@@ -4,7 +4,7 @@ image_bridge::image_bridge()
 : it_(nh_)
 {
     image_sub1 = it_.subscribe("usb_cam1/image_raw", 1 , &image_bridge::imageCbA, this);
-    image_sub2 = it_.subscribe("usb_cam1/image_raw", 1 , &image_bridge::imageCbB, this);
+    image_sub2 = it_.subscribe("usb_cam2/image_raw", 1 , &image_bridge::imageCbB, this);
     cv::namedWindow(OPENCV_WINDOW1);
 }
 
@@ -66,7 +66,7 @@ void image_bridge::merge() //merging the images of the two cameras into one matr
     img1.copyTo(new_img(cv::Rect(0,0,img1.cols,img1.rows)));
     img2.copyTo(new_img(cv::Rect(img1.cols,0,img1.cols,img1.rows)));;
 
-    cv::resize(new_img, res, cv::Size(new_img.cols/5, new_img.rows/5));
+    cv::resize(new_img, res, cv::Size(new_img.cols, new_img.rows));
 
     cv::imshow(OPENCV_WINDOW1, res);
 

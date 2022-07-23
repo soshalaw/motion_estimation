@@ -5,8 +5,6 @@
 
 #include "image_bridge.h"
 
-
-
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "image_bridge_node");
