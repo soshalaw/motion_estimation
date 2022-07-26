@@ -1,0 +1,23 @@
+<launch>
+
+	<rosparam file="$(find image_bridge)/config/cameras.yaml"/>
+
+	<rosparam file="$(find image_bridge)/config/image_params.yaml"/>
+
+	<include file= "$(find image_bridge)/launch/camera.launch">
+		<arg name="usb_cam" value="usb_cam1"/>
+                <arg name="video_device" value="/dev/video2"/>
+		<arg name="image_width" value="1920"/>
+		<arg name="image_height" value="1080"/>
+	</include>
+	
+	<include file= "$(find image_bridge)/launch/camera.launch">
+		<arg name="usb_cam" value="usb_cam2"/>
+                <arg name="video_device" value="/dev/video6"/>
+		<arg name="image_width" value="1920"/>
+		<arg name="image_height" value="1080"/>
+	</include>
+		
+    <node name="image_bridge_node" pkg="image_bridge" type="image_bridge_node" output="screen"/>
+
+</launch>

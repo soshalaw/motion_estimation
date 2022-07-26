@@ -1,0 +1,9 @@
+<launch>
+
+    <rosparam file="$(find image_bridge)/config/cameras.yaml"/>
+
+    <node name="player" pkg="rosbag" type="play" output="screen" args="-l $(find image_bridge)/rosbag/bag1.bag" />
+
+    <node name="image_bridge_node" pkg="image_bridge" type="image_bridge_node" output="screen"/>
+
+</launch>

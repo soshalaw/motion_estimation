@@ -1,24 +1,12 @@
+
 #include "ocam_functions.h"
 
 ocam_functions::ocam_functions()
 {
-    ros::param::get("cam1_invpol", cam1_invpol);
-    ros::param::get("cam1_mapcoef", cam1_pol);;
-    ros::param::get("cam1_yc", cam1_yc);
-    ros::param::get("cam1_xc", cam1_xc);
-    ros::param::get("cam1_c", cam1_c);
-    ros::param::get("cam1_d", cam1_d);
-    ros::param::get("cam1_e", cam1_e);
+    ros::param::get("H_res", H_res); // horizontal length of the output image
 
-    ros::param::get("cam2_invpol", cam2_invpol);
-    ros::param::get("cam2_mapcoef", cam2_pol);
-    ros::param::get("cam2_yc", cam2_yc);
-    ros::param::get("cam2_xc", cam2_xc);
-    ros::param::get("cam2_c", cam2_c);
-    ros::param::get("cam2_d", cam2_d);
-    ros::param::get("cam2_e", cam2_e);
-
-    H_res = 1024;
+    //ros::param::get("pixel_length", pixel_length);  //length of a pixel in mm extracted from the camera specs
+    //foc_len = pol[0]*pixel_length;
 
     mode = 0;
 }
@@ -27,7 +15,7 @@ void ocam_functions::world2cam(double point2D[2], double point3D[3], double xc, 
 {
      double norm        = sqrt(point3D[0]*point3D[0] + point3D[1]*point3D[1]);
      double theta       = atan(point3D[2]/norm);
-     int length_invpol  = invpol.size();
+     int length_invpol  = static_cast<int>(invpol.size());
      double t, t_i;
      double rho, x, y;
      double invnorm;
@@ -59,15 +47,24 @@ void ocam_functions::world2cam(double point2D[2], double point3D[3], double xc, 
      }
 }
 
-cv::Mat ocam_functions::slice(cv::Mat M, double c[3], double theta_min, double theta_max, double delta_min, double delta_max)
+cv::Mat ocam_functions::slice(cv::Mat M, std::array<double,3> &c, double theta_min_deg, double theta_max_deg, double alpha_min_deg, double alpha_max_deg, double xc, double yc, double c_, double d, double e, std::vector<double> invpol)
 {
+    double theta_min, theta_max, alpha_min, alpha_max;
+
+    theta_max = CV_PI*theta_max_deg/180;
+    theta_min = CV_PI*theta_min_deg/180;
+
+
+    alpha_max = CV_PI*alpha_max_deg/180;
+    alpha_min = CV_PI*alpha_min_deg/180;
+
     double alpha = theta_max - theta_min;
 
-    double gamma = delta_max - delta_min;
+    double gamma = alpha_max - alpha_min;
 
     double theta = 0;
 
-    int V_res = tan(gamma/2)*H_res/tan(alpha/2);
+    int V_res = static_cast<int>(tan(gamma/2)*H_res/tan(alpha/2));
 
     img.create(V_res, H_res,M.type());
     ImgPointsx.create(img.size(), CV_32FC1);
@@ -75,39 +72,65 @@ cv::Mat ocam_functions::slice(cv::Mat M, double c[3], double theta_min, double t
 
     if (mode == 1)
     {
-        c[0] = cp_x = sin(theta_min + (alpha)/2)*sin(delta_min + (gamma)/2);
-        c[1] = cp_y = cos(theta_min + (alpha)/2)*sin(delta_min + (gamma)/2);
-        c[2] = cp_z = cos(delta_min + (gamma)/2);
+        c.at(0) = cp_x = sin(theta_min + (alpha)/2)*sin(alpha_min + (gamma)/2);
+        c.at(1) = cp_y = cos(theta_min + (alpha)/2)*sin(alpha_min + (gamma)/2);
+        c.at(2) = cp_z = cos(alpha_min + (gamma)/2);
+
+        modx = sqrt(cp_z*cp_z + cp_x*cp_x);
+        mody = sqrt((cp_x*cp_y)*(cp_x*cp_y) + (cp_y*cp_z)*(cp_y*cp_z) + (cp_z*cp_z + cp_x*cp_x)*(cp_z*cp_z + cp_x*cp_x));
+
+        for(int i = 0 ; i < V_res; i++)
+        {
+            y_ = -tan(gamma/2) + i*2*tan(gamma/2)/V_res;
+
+            for(int j = 0; j < H_res; j++)
+            {
+                x_ = -tan(alpha/2) + j*2*tan(alpha/2)/H_res;
+
+                x = cp_y*x_/modx + cp_x*cp_z*y_/mody + cp_x;
+                y = -cp_x*x_/modx + cp_y*cp_z*y_/mody + cp_y;
+                z = -(cp_y*cp_y + cp_x*cp_x)*y_/mody + cp_z;
+
+                planer_coords[0] = x/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+                planer_coords[1] = y/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+                planer_coords[2] = z/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+
+                world2cam(points2D, planer_coords, xc, yc, c_, d, e, invpol);
+
+                ImgPointsx.at<float>(i,j) = static_cast<float>(points2D[0]);
+                ImgPointsy.at<float>(i,j) = static_cast<float>(points2D[1]);
+            }
+        }
     }else
     {
-        c[0] = cp_x = sin(theta_min + (alpha)/2)*sin(delta_min + (gamma)/2);
-        c[1] = cp_y = cos(delta_min + (gamma)/2);
-        c[2] = cp_z = cos(theta_min + (alpha)/2)*sin(delta_min + (gamma)/2);
-    }
+        c.at(0) = cp_x = sin(theta_min + (alpha)/2)*sin(alpha_min + (gamma)/2);
+        c.at(1) = cp_y = cos(alpha_min + (gamma)/2);
+        c.at(2) = cp_z = cos(theta_min + (alpha)/2)*sin(alpha_min + (gamma)/2);
 
-    modx = sqrt(cp_y*cp_y + cp_x*cp_x);
-    mody = sqrt((cp_x*cp_z)*(cp_x*cp_z) + (cp_y*cp_z)*(cp_y*cp_z) + (cp_y*cp_y + cp_x*cp_x)*(cp_y*cp_y + cp_x*cp_x));
+        modx = sqrt(cp_z*cp_z + cp_x*cp_x);
+        mody = sqrt((cp_x*cp_y)*(cp_x*cp_y) + (cp_y*cp_z)*(cp_y*cp_z) + (cp_z*cp_z + cp_x*cp_x)*(cp_z*cp_z + cp_x*cp_x));
 
-    for(int i = 0 ; i < V_res; i++)
-    {
-        y_ = -tan(gamma/2) + i*2*tan(gamma/2)/V_res;
-
-        for(int j = 0; j < H_res; j++)
+        for(int i = 0 ; i < V_res; i++)
         {
-            x_ = -tan(alpha/2) + j*2*tan(alpha/2)/H_res;
+            y_ = -tan(gamma/2) + i*2*tan(gamma/2)/V_res;
 
-            x = cp_y*x_/modx + cp_x*cp_z*y_/mody + cp_x;
-            y = -cp_x*x_/modx + cp_y*cp_z*y_/mody + cp_y;
-            z = -(cp_y*cp_y + cp_x*cp_x)*y_/mody + cp_z;
+            for(int j = 0; j < H_res; j++)
+            {
+                x_ = -tan(alpha/2) + j*2*tan(alpha/2)/H_res;
 
-            planer_coords[0] = x/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
-            planer_coords[1] = y/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
-            planer_coords[2] = z/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+                x = cp_z*x_/modx - cp_x*cp_y*y_/mody + cp_x;
+                y = (cp_z*cp_z + cp_x*cp_x)*y_/mody + cp_y;
+                z = -cp_x*x_/modx - cp_z*cp_y*y_/mody + cp_z;
 
-            world2cam(points2D, planer_coords, cam1_xc, cam1_yc, cam1_c, cam1_d, cam1_e, cam1_invpol);
+                planer_coords[0] = x/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+                planer_coords[1] = y/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
+                planer_coords[2] = z/sqrt(pow(x,2) + pow(y,2) + pow(z,2));
 
-            ImgPointsx.at<float>(i,j) = points2D[0];
-            ImgPointsy.at<float>(i,j) = points2D[1];
+                world2cam(points2D, planer_coords, xc, yc, c_, d, e, invpol);
+
+                ImgPointsx.at<float>(i,j) = static_cast<float>(points2D[0]);
+                ImgPointsy.at<float>(i,j) = static_cast<float>(points2D[1]);
+            }
         }
     }
 
@@ -116,3 +139,42 @@ cv::Mat ocam_functions::slice(cv::Mat M, double c[3], double theta_min, double t
     return img;
 }
 
+cv::Mat ocam_functions::panaroma(cv::Mat M, double delta_min_deg, double delta_max_deg, double xc, double yc, double c_, double d, double e, std::vector<double> invpol)
+{
+    double x, y, z, delta_min, delta_max;
+
+    cv::Mat img;
+
+    delta_max = CV_PI*delta_max_deg/180;
+    delta_min = CV_PI*delta_min_deg/180;
+
+    double h_m = tan(delta_min) + tan(delta_max);
+    int V_res = int(h_m*H_res/CV_PI);
+
+    img.create(V_res, H_res,M.type());
+    ImgPointsx.create(img.size(), CV_32FC1);
+    ImgPointsy.create(img.size(), CV_32FC1);
+
+    for(int i = 0; i < V_res; i++)
+    {
+        y = -tan(delta_min) + h_m*i/V_res;
+
+        for(int j = 0; j < H_res; j++)
+        {
+            x = cos(CV_PI*j/H_res);
+            z = sin(CV_PI*j/H_res);
+
+            cyl_coords[0] = x;
+            cyl_coords[1] = y;
+            cyl_coords[2] = z;
+
+            world2cam(points2D, cyl_coords, xc, yc, c_, d, e, invpol);
+
+            ImgPointsx.at<float>(i,j) = static_cast<float>(points2D[0]);
+            ImgPointsy.at<float>(i,j) = static_cast<float>(points2D[1]);
+        }
+    }
+
+    cv::remap(M, img, ImgPointsx, ImgPointsy, 1);
+    return img;
+    }
