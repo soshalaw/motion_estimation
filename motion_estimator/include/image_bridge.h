@@ -35,6 +35,8 @@ private:
     ros::NodeHandle nh_;
     image_transport::ImageTransport it_;
     image_transport::Subscriber image_sub1, image_sub2;
+    image_transport::Publisher image_pub;
+    cv_bridge::CvImage out_img;
 
     std::array<double,3> c;
 

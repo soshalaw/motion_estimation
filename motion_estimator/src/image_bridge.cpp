@@ -55,6 +55,11 @@ void image_bridge::imageCbA(const sensor_msgs::ImageConstPtr &msg)
     }
 
     img1 = cv_ptr->image;
+    out_img.header = cv_ptr->header;
+    out_img.encoding = cv_ptr->encoding;
+    out_img.image = img1;
+
+    image_pub.publish(out_img.toImageMsg());
 }
 
 
@@ -74,8 +79,8 @@ void image_bridge::imageCbB(const sensor_msgs::ImageConstPtr &msg)
 
     img2 = cv_ptr->image;
 
-    //cuboidal_proj();
-    panorama();
+    cuboidal_proj();
+    //panorama();
 }
 
 void image_bridge::cuboidal_proj() // cuboidal projection of the 360 image view
@@ -107,7 +112,6 @@ void image_bridge::cuboidal_proj() // cuboidal projection of the 360 image view
 
        proj_cols = proj_cols + proj.cols;
     }
-
     cv::imshow(OPENCV_WINDOW1, new_img);
 
     int k = cv::waitKey(1);
@@ -136,9 +140,9 @@ void image_bridge::panorama() //merging the images of the two cameras into one m
 
     //resize the image to fit the monitor screen for visualization
 
-    //cv::resize(new_img, res, cv::Size(new_img.cols/2, new_img.rows/2));
+    cv::resize(new_img, res, cv::Size(new_img.cols*3, new_img.rows*3));
 
-    cv::imshow(OPENCV_WINDOW1, new_img);
+    cv::imshow(OPENCV_WINDOW1, res);
 
     int k = cv::waitKey(1);
 

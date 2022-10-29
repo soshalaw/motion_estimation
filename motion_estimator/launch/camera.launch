@@ -3,8 +3,8 @@
   <!-- Define node name -->
     <arg name="usb_cam" default="usb_cam"/>
     <arg name="video_device" default="/dev/video2"/>
-    <arg name="image_width" default="640"/>
-    <arg name="image_height" default="480"/>
+    <arg name="image_width" default="1920"/>
+    <arg name="image_height" default="1080"/>
   
   <!-- Use different namespaces for the 2nd camera or greater -->
   <group ns="$(arg usb_cam)">
