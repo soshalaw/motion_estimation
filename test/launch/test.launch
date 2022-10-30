@@ -2,6 +2,8 @@
 
 	<include file= "$(find test)/launch/camera.launch"/>
 	
+	<include file= "$(find test)/launch/mocap.launch"/>
+	
         <!--remap from="/kitti/camera_color_left/image_raw" to="usb_cam/image"/-->
         <!--node name="player" pkg="rosbag" type="play" output="screen" args="-l $(find test)/rosbag/kitti_2011_09_26_drive_0051_synced.bag"/-->
 
