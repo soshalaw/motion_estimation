@@ -31,13 +31,6 @@ void imageproc::imageCb(const sensor_msgs::ImageConstPtr &msg)
 
     estimate(img);
 
-   /* cv::cvtColor(img, img_gray, cv::COLOR_BGR2GRAY);
-
-    out_img.header = cv_ptr->header;
-    out_img.encoding = sensor_msgs::image_encodings::MONO8;
-    out_img.image = img_gray;
-
-    image_pub.publish(out_img.toImageMsg());*/
 }
 
 void imageproc::estimate(cv::Mat img)
