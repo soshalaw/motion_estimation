@@ -4,7 +4,7 @@
 	
 	<include file= "$(find test)/launch/mocap.launch"/>
 	
-	<node pkg="rosbag" type="record" name="rosbag_record_diag"
+	<node pkg="rosbag" type="record" name="record"
        args="record -o /usb_cam"/> 
 
 </launch>
