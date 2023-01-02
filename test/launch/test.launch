@@ -5,9 +5,9 @@
 	<!--include file= "$(find test)/launch/mocap.launch"/-->
 	
         <!--remap from="/kitti/camera_color_left/image_raw" to="usb_cam/image"/-->
-        <node name="player" pkg="rosbag" type="play" output="screen" args="-l $(find test)/rosbag/2022-10-31-21-43-34.bag"/>
+        <!--node name="player" pkg="rosbag" type="play" output="screen" args="-l $(find test)/rosbag/2022-12-23-17-48-48.bag"/-->
+        <node name="player" pkg="rosbag" type="play" output="screen" args="-l $(find test)/rosbag/2023-01-02-13-55-56.bag"/>
 
-	
 	<node name="test_node" pkg="test" type="test_node" output="screen"/>
 
 </launch>

@@ -1,0 +1,8 @@
+<launch>
+	
+        <!--remap from="/kitti/camera_color_left/image_raw" to="usb_cam/image"/-->
+        <node name="player" pkg="rosbag" type="play" output="screen" args="-l $(find test)/rosbag/2023-01-02-13-55-56.bag"/>
+        
+        <node type="rviz" name="rviz" pkg="rviz" args="-d $(find test)/config/rviz.rviz" />
+
+</launch>
